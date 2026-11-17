@@ -6,7 +6,8 @@ dotenv.config();
 const boolish = z
   .enum(['true', 'false', '1', '0'])
   .optional()
-  .transform((v) => v === 'true' || v === '1');
+  .transform((v) => v === 'true' || v === '1')
+  .default(false);
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -16,7 +17,7 @@ const schema = z.object({
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGINS: z.string().default('http://localhost:3000'),
-  COOKIE_SECURE: boolish.default('false'),
+  COOKIE_SECURE: boolish,
   COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
   COOKIE_DOMAIN: z.string().optional().default(''),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),
