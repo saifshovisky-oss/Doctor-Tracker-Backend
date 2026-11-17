@@ -124,8 +124,8 @@ The command is idempotent (upsert by email). It refuses to run in production unl
 
 ```bash
 npx tsx src/scripts/demo-server.ts
-# Starts an in-memory MongoDB, seeds realistic data and the API on :4000
-# Demo login: admin@doctortracker.local / Admin12345!
+# Starts an in-memory MongoDB and seeds realistic data plus a demo admin.
+# Set ADMIN_EMAIL / ADMIN_PASSWORD (or DEMO_ADMIN_PASSWORD) first — no credentials are hardcoded.
 ```
 
 ## 8. API endpoints

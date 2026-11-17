@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Doctor } from '../models/Doctor';
 import { Patient } from '../models/Patient';
+import { Photo } from '../models/Photo';
 import { ApiError } from '../utils/apiError';
 import { assertObjectId } from '../utils/ids';
 import { dateRange } from '../utils/dates';
@@ -18,6 +19,7 @@ export interface PatientView {
   doctorId: string;
   doctorName?: string;
   doctorSpecialization?: string;
+  hasPhoto: boolean;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -67,6 +69,7 @@ export async function listPatients(query: PatientListQuery): Promise<PaginatedDa
         phone: 1,
         email: 1,
         condition: 1,
+        hasPhoto: { $ne: ['$photoId', null] },
         notes: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -104,6 +107,7 @@ export async function getPatient(id: string): Promise<PatientView> {
     doctorId: doctor ? String(doctor._id) : String(patient.doctorId),
     doctorName: doctor?.name,
     doctorSpecialization: doctor?.specialization,
+    hasPhoto: !!patient.photoId,
     notes: patient.notes,
     createdAt: patient.createdAt,
     updatedAt: patient.updatedAt,
@@ -143,8 +147,10 @@ export async function updatePatient(id: string, input: UpdatePatientInput): Prom
 
 export async function deletePatient(id: string): Promise<void> {
   assertObjectId(id);
-  const deleted = await Patient.findByIdAndDelete(id).lean();
-  if (!deleted) throw ApiError.notFound('Patient not found');
+  const patient = await Patient.findById(id).select('photoId');
+  if (!patient) throw ApiError.notFound('Patient not found');
+  if (patient.photoId) await Photo.findByIdAndDelete(patient.photoId);
+  await Patient.findByIdAndDelete(id);
 }
 
 /** Distinct condition values for form suggestions, sorted alphabetically. */

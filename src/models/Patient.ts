@@ -10,12 +10,13 @@ export interface IPatient {
   email?: string;
   condition: string;
   doctorId: Types.ObjectId;
+  photoId?: Types.ObjectId;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export const patientFields = 'name age gender phone email condition doctorId notes createdAt updatedAt';
+export const patientFields = 'name age gender phone email condition doctorId photoId notes createdAt updatedAt';
 
 const patientSchema = new Schema<IPatient, Model<IPatient>>(
   {
@@ -31,6 +32,7 @@ const patientSchema = new Schema<IPatient, Model<IPatient>>(
       required: [true, 'Doctor is required'],
       index: true,
     },
+    photoId: { type: Schema.Types.ObjectId, ref: 'Photo', default: undefined, index: true },
     notes: { type: String, trim: true, maxlength: 2000, default: undefined },
   },
   { timestamps: true, versionKey: false },

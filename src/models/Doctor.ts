@@ -1,4 +1,4 @@
-import mongoose, { Schema, type Model } from 'mongoose';
+import mongoose, { Schema, type Model, type Types } from 'mongoose';
 
 export interface IDoctor {
   name: string;
@@ -6,11 +6,12 @@ export interface IDoctor {
   hospital: string;
   phone: string;
   email: string;
+  photoId?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export const doctorFields = 'name specialization hospital phone email createdAt updatedAt';
+export const doctorFields = 'name specialization hospital phone email photoId createdAt updatedAt';
 
 const doctorSchema = new Schema<IDoctor, Model<IDoctor>>(
   {
@@ -30,6 +31,7 @@ const doctorSchema = new Schema<IDoctor, Model<IDoctor>>(
       lowercase: true,
       maxlength: 254,
     },
+    photoId: { type: Schema.Types.ObjectId, ref: 'Photo', default: undefined, index: true },
   },
   { timestamps: true, versionKey: false },
 );

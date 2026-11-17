@@ -16,13 +16,17 @@ async function main() {
   const { Doctor } = await import('../models/Doctor');
   const { Patient } = await import('../models/Patient');
   const { User } = await import('../models/User');
+  const { Condition } = await import('../models/Condition');
   const { env } = await import('../config/env');
   const bcrypt = (await import('bcryptjs')).default;
 
   await connectDB();
 
   const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@doctortracker.local';
-  const adminPassword = process.env.ADMIN_PASSWORD ?? 'Admin12345!';
+  const adminPassword = process.env.ADMIN_PASSWORD ?? process.env.DEMO_ADMIN_PASSWORD;
+  if (!adminPassword) {
+    throw new Error('Set ADMIN_PASSWORD (or DEMO_ADMIN_PASSWORD) before running the demo server');
+  }
   await User.create({
     name: process.env.ADMIN_NAME ?? 'Dr. Alex Morgan',
     email: adminEmail,
@@ -66,6 +70,11 @@ async function main() {
     };
   });
   await Patient.insertMany(patients);
+
+  // Seed the managed condition catalog from the same values used above.
+  await Condition.insertMany(
+    conditions.map((name) => ({ name, key: name.toLowerCase() })),
+  );
 
   // Backdate records for meaningful trend charts (raw collection bypasses
   // Mongoose timestamps so createdAt is preserved).

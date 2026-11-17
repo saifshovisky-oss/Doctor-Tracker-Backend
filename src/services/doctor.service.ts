@@ -1,5 +1,6 @@
 import { Doctor } from '../models/Doctor';
 import { Patient } from '../models/Patient';
+import { Photo } from '../models/Photo';
 import { ApiError } from '../utils/apiError';
 import { assertObjectId } from '../utils/ids';
 import { dateRange } from '../utils/dates';
@@ -14,6 +15,7 @@ export interface DoctorView {
   phone: string;
   email: string;
   patientCount: number;
+  hasPhoto: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,6 +69,7 @@ export async function listDoctors(query: DoctorListQuery): Promise<PaginatedData
         phone: 1,
         email: 1,
         patientCount: 1,
+        hasPhoto: { $ne: ['$photoId', null] },
         createdAt: 1,
         updatedAt: 1,
       },
@@ -98,6 +101,7 @@ export async function getDoctor(id: string): Promise<DoctorView> {
     phone: doctor.phone,
     email: doctor.email,
     patientCount,
+    hasPhoto: !!doctor.photoId,
     createdAt: doctor.createdAt,
     updatedAt: doctor.updatedAt,
   };
@@ -127,8 +131,8 @@ export async function updateDoctor(id: string, input: UpdateDoctorInput): Promis
 
 export async function deleteDoctor(id: string): Promise<void> {
   assertObjectId(id);
-  const exists = await Doctor.exists({ _id: id });
-  if (!exists) throw ApiError.notFound('Doctor not found');
+  const doctor = await Doctor.findById(id).select('photoId');
+  if (!doctor) throw ApiError.notFound('Doctor not found');
 
   const patientCount = await Patient.countDocuments({ doctorId: id });
   if (patientCount > 0) {
@@ -138,6 +142,7 @@ export async function deleteDoctor(id: string): Promise<void> {
       { patientCount },
     );
   }
+  if (doctor.photoId) await Photo.findByIdAndDelete(doctor.photoId);
   await Doctor.findByIdAndDelete(id);
 }
 
