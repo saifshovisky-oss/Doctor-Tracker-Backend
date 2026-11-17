@@ -156,6 +156,7 @@ All responses are JSON. Successful responses use `{ "success": true, "data": …
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/api/v1/patients` | Paginated list (supports `search`, `condition`, `doctorId`, date range, sorting) |
+| GET | `/api/v1/patients/conditions` | Distinct condition values for form suggestions |
 | POST | `/api/v1/patients` | Create patient (validates doctor reference) |
 | GET | `/api/v1/patients/:id` | Patient detail with populated doctor |
 | PATCH | `/api/v1/patients/:id` | Update patient |
@@ -240,7 +241,7 @@ Dates are normalised to UTC calendar-day boundaries server-side; a `YYYY-MM-DD` 
 ## 13. Testing
 
 ```bash
-npm test              # 35 tests against a real in-memory MongoDB
+npm test              # 36 tests against a real in-memory MongoDB
 npm run test:watch
 npm run typecheck
 npm run build

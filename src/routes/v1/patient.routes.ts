@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  conditionsController,
   createPatientController,
   deletePatientController,
   getPatientController,
@@ -15,6 +16,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', validate({ query: patientListQuery }), listPatientsController);
+router.get('/conditions', conditionsController);
 router.post('/', validate({ body: createPatientSchema }), createPatientController);
 router.get('/:id', validate({ params: idParamSchema }), getPatientController);
 router.patch('/:id', validate({ params: idParamSchema, body: updatePatientSchema }), updatePatientController);

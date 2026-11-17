@@ -118,6 +118,14 @@ describe('Patients', () => {
     expect((await agent.delete(`/api/v1/patients/${id}`)).status).toBe(404);
   });
 
+  it('lists distinct conditions for form suggestions', async () => {
+    const agent = await authenticatedAgent(app);
+    await seedPatients(3, doctorId);
+    const res = await agent.get('/api/v1/patients/conditions');
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual(['Diabetes', 'Hypertension']);
+  });
+
   it('handles invalid ids', async () => {
     const agent = await authenticatedAgent(app);
     expect((await agent.get('/api/v1/patients/nope')).status).toBe(400);

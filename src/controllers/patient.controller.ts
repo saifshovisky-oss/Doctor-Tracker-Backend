@@ -3,6 +3,7 @@ import {
   createPatient,
   deletePatient,
   getPatient,
+  listConditions,
   listPatients,
   updatePatient,
 } from '../services/patient.service';
@@ -27,6 +28,10 @@ export const createPatientController = asyncHandler(async (req: Request, res: Re
 export const updatePatientController = asyncHandler(async (req: Request, res: Response) => {
   const patient = await updatePatient(req.params.id!, req.body as UpdatePatientInput);
   sendSuccess(res, patient, 200, 'Patient updated successfully');
+});
+
+export const conditionsController = asyncHandler(async (_req: Request, res: Response) => {
+  sendSuccess(res, await listConditions());
 });
 
 export const deletePatientController = asyncHandler(async (req: Request, res: Response) => {

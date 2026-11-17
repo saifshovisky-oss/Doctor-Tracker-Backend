@@ -147,6 +147,12 @@ export async function deletePatient(id: string): Promise<void> {
   if (!deleted) throw ApiError.notFound('Patient not found');
 }
 
+/** Distinct condition values for form suggestions, sorted alphabetically. */
+export async function listConditions(): Promise<string[]> {
+  const values = await Patient.distinct('condition');
+  return values.filter(Boolean).sort((a: string, b: string) => a.localeCompare(b));
+}
+
 /** Used by dashboard "recent patients" with a single indexed query. */
 export async function recentPatients(limit: number): Promise<PatientView[]> {
   return listPatients({ page: 1, limit, sortBy: 'createdAt', sortOrder: 'desc' } as PatientListQuery).then(
