@@ -199,7 +199,7 @@ All responses are JSON. Successful responses use `{ "success": true, "data": …
 ## 9. Database schema and indexes
 
 **users**: `name`, `email` (unique), `password` (`select: false`), `role`, timestamps.
-**doctors**: `name`, `specialization`, `hospital`, `phone`, `email` (unique), timestamps.
+**doctors**: `name`, `specialization` (array of free-text tags, up to 10), `hospital`, `phone`, `email` (unique), timestamps.
 **patients**: `name`, `age`, `gender`, `phone`, `email`, `condition`, `doctorId` (ref → doctors, required), `notes`, timestamps.
 
 Indexes (defined in the schemas; Mongoose auto-creates them on startup):

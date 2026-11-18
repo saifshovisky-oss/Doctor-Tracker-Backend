@@ -19,6 +19,7 @@ export interface PatientView {
   doctorId: string;
   doctorName?: string;
   doctorSpecialization?: string;
+  doctorSpecializations?: string[];
   hasPhoto: boolean;
   notes?: string;
   createdAt: Date;
@@ -54,7 +55,18 @@ export async function listPatients(query: PatientListQuery): Promise<PaginatedDa
       },
     },
     { $unwind: { path: '$_doctor', preserveNullAndEmptyArrays: true } },
-    { $addFields: { doctorName: '$_doctor.name', doctorSpecialization: '$_doctor.specialization' } },
+    {
+      $addFields: {
+        doctorName: '$_doctor.name',
+        doctorSpecializations: {
+          $cond: [
+            { $isArray: '$_doctor.specialization' },
+            '$_doctor.specialization',
+            [{ $ifNull: ['$_doctor.specialization', ''] }],
+          ],
+        },
+      },
+    },
     { $unset: '_doctor' },
     {
       $project: {
@@ -62,7 +74,8 @@ export async function listPatients(query: PatientListQuery): Promise<PaginatedDa
         id: { $toString: '$_id' },
         doctorId: { $toString: '$doctorId' },
         doctorName: 1,
-        doctorSpecialization: 1,
+        doctorSpecializations: 1,
+        doctorSpecialization: { $arrayElemAt: ['$doctorSpecializations', 0] },
         name: 1,
         age: 1,
         gender: 1,
@@ -106,7 +119,14 @@ export async function getPatient(id: string): Promise<PatientView> {
     condition: patient.condition,
     doctorId: doctor ? String(doctor._id) : String(patient.doctorId),
     doctorName: doctor?.name,
-    doctorSpecialization: doctor?.specialization,
+    doctorSpecializations: Array.isArray(doctor?.specialization)
+      ? doctor.specialization
+      : doctor?.specialization
+        ? [doctor.specialization]
+        : undefined,
+    doctorSpecialization: Array.isArray(doctor?.specialization)
+      ? doctor.specialization.join(', ')
+      : doctor?.specialization,
     hasPhoto: !!patient.photoId,
     notes: patient.notes,
     createdAt: patient.createdAt,

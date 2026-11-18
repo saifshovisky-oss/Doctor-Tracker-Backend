@@ -35,17 +35,17 @@ async function main() {
   });
 
   const specialties = [
-    ['Cardiology', 'Dr. Sarah Chen', 'Central General Hospital'],
-    ['Dermatology', 'Dr. Marcus Rivera', 'St. Mary Medical Center'],
-    ['Pediatrics', 'Dr. Emily Carter', 'Children’s Health Clinic'],
-    ['Neurology', 'Dr. James Okafor', 'University Hospital'],
-    ['Orthopedics', 'Dr. Olivia Bennett', 'Riverside Medical Center'],
-    ['General Practice', 'Dr. Daniel Kim', 'Northside Family Clinic'],
-  ];
+    [['Cardiology', 'Internal Medicine'], 'Dr. Sarah Chen', 'Central General Hospital'],
+    [['Dermatology'], 'Dr. Marcus Rivera', 'St. Mary Medical Center'],
+    [['Pediatrics', 'Neonatology'], 'Dr. Emily Carter', 'Children’s Health Clinic'],
+    [['Neurology'], 'Dr. James Okafor', 'University Hospital'],
+    [['Orthopedics', 'Sports Medicine'], 'Dr. Olivia Bennett', 'Riverside Medical Center'],
+    [['General Practice'], 'Dr. Daniel Kim', 'Northside Family Clinic'],
+  ] as const;
   const doctors = await Doctor.insertMany(
     specialties.map(([specialization, name, hospital], i) => ({
       name,
-      specialization,
+      specialization: [...specialization],
       hospital,
       phone: `+1 555 ${String(201 + i)} ${String(1000 + i * 37)}`,
       email: `${name.toLowerCase().replace(/[^a-z]+/g, '.')}@clinic.local`,

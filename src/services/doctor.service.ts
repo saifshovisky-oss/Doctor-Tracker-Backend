@@ -10,7 +10,10 @@ import type { CreateDoctorInput, DoctorListQuery, UpdateDoctorInput } from '../v
 export interface DoctorView {
   id: string;
   name: string;
+  /** Primary specialization (first tag) — kept for backwards compatibility. */
   specialization: string;
+  /** All assigned specialization tags. */
+  specializations: string[];
   hospital: string;
   phone: string;
   email: string;
@@ -26,6 +29,14 @@ const SORTABLE = new Set(['name', 'specialization', 'hospital', 'email', 'create
 
 function normalizeEmail(email?: string): string | undefined {
   return email?.toLowerCase().trim();
+}
+
+/** Accepts legacy scalar values as well as the current array of tags. */
+function normalizeSpecializations(value?: unknown): string[] {
+  const raw = Array.isArray(value) ? value : value ? [value] : [];
+  return Array.from(
+    new Set(raw.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)),
+  );
 }
 
 export async function listDoctors(query: DoctorListQuery): Promise<PaginatedData<DoctorView>> {
@@ -60,11 +71,23 @@ export async function listDoctors(query: DoctorListQuery): Promise<PaginatedData
     { $addFields: { patientCount: { $ifNull: [{ $arrayElemAt: ['$_patientCount.count', 0] }, 0] } } },
     { $unset: '_patientCount' },
     {
+      $addFields: {
+        _specs: {
+          $cond: [
+            { $isArray: '$specialization' },
+            '$specialization',
+            [{ $ifNull: ['$specialization', ''] }],
+          ],
+        },
+      },
+    },
+    {
       $project: {
         _id: 0,
         id: { $toString: '$_id' },
         name: 1,
-        specialization: 1,
+        specializations: '$_specs',
+        specialization: { $arrayElemAt: ['$_specs', 0] },
         hospital: 1,
         phone: 1,
         email: 1,
@@ -93,10 +116,12 @@ export async function getDoctor(id: string): Promise<DoctorView> {
   const doctor = await Doctor.findById(id).lean();
   if (!doctor) throw ApiError.notFound('Doctor not found');
   const patientCount = await Patient.countDocuments({ doctorId: doctor._id });
+  const specializations = normalizeSpecializations(doctor.specialization);
   return {
     id: String(doctor._id),
     name: doctor.name,
-    specialization: doctor.specialization,
+    specialization: specializations[0] ?? '',
+    specializations,
     hospital: doctor.hospital,
     phone: doctor.phone,
     email: doctor.email,
@@ -120,6 +145,7 @@ export async function updateDoctor(id: string, input: UpdateDoctorInput): Promis
   assertObjectId(id);
   const payload = { ...input };
   if (payload.email) payload.email = normalizeEmail(payload.email);
+  if (payload.specialization !== undefined) payload.specialization = normalizeSpecializations(payload.specialization);
   const doctor = await Doctor.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
@@ -149,5 +175,5 @@ export async function deleteDoctor(id: string): Promise<void> {
 /** Distinct specializations, used by the filter dropdown. */
 export async function listSpecializations(): Promise<string[]> {
   const values = await Doctor.distinct('specialization');
-  return values.filter(Boolean).sort((a: string, b: string) => a.localeCompare(b));
+  return normalizeSpecializations(values).sort((a, b) => a.localeCompare(b));
 }

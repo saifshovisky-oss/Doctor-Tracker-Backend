@@ -28,6 +28,20 @@ describe('Doctors', () => {
     expect(res.body.data.patientCount).toBe(0);
   });
 
+  it('accepts multiple free-text specializations and exposes them as tags', async () => {
+    const agent = await authenticatedAgent(app);
+    const res = await agent.post('/api/v1/doctors').send({
+      ...payload,
+      specialization: ['Cardiology', 'Internal Medicine', 'Cardiology'],
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.data.specializations).toEqual(['Cardiology', 'Internal Medicine']);
+    expect(res.body.data.specialization).toBe('Cardiology');
+
+    const found = await agent.get(`/api/v1/doctors/${res.body.data.id}`);
+    expect(found.body.data.specializations).toContain('Internal Medicine');
+  });
+
   it('rejects duplicate emails with 409', async () => {
     const agent = await authenticatedAgent(app);
     await agent.post('/api/v1/doctors').send(payload);

@@ -104,7 +104,9 @@ export async function getPatientsPerDoctor(): Promise<DoctorCount[]> {
   return rows.map((row) => ({
     doctorId: String(row._id),
     name: row.doctor?.name ?? 'Unknown doctor',
-    specialization: row.doctor?.specialization ?? '—',
+    specialization: Array.isArray(row.doctor?.specialization)
+      ? (row.doctor!.specialization as string[]).join(', ')
+      : (row.doctor?.specialization ?? '-'),
     count: row.count,
   }));
 }
@@ -120,6 +122,7 @@ export async function getConditionDistribution(): Promise<NamedCount[]> {
 
 export async function getSpecializationDistribution(): Promise<NamedCount[]> {
   const rows = await Doctor.aggregate<{ _id: string; value: number }>([
+    { $unwind: '$specialization' },
     { $group: { _id: '$specialization', value: { $sum: 1 } } },
     { $sort: { value: -1, _id: 1 } },
     { $limit: 8 },

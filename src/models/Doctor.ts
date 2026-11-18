@@ -2,7 +2,7 @@ import mongoose, { Schema, type Model, type Types } from 'mongoose';
 
 export interface IDoctor {
   name: string;
-  specialization: string;
+  specialization: string[];
   hospital: string;
   phone: string;
   email: string;
@@ -17,10 +17,12 @@ const doctorSchema = new Schema<IDoctor, Model<IDoctor>>(
   {
     name: { type: String, required: [true, 'Name is required'], trim: true, maxlength: 150 },
     specialization: {
-      type: String,
-      required: [true, 'Specialization is required'],
-      trim: true,
-      maxlength: 120,
+      type: [{ type: String, trim: true, maxlength: 120 }],
+      required: [true, 'At least one specialization is required'],
+      validate: {
+        validator: (values: string[]) => Array.isArray(values) && values.length > 0 && values.every((value) => value.trim().length > 0),
+        message: 'At least one specialization is required',
+      },
     },
     hospital: { type: String, required: [true, 'Hospital is required'], trim: true, maxlength: 180 },
     phone: { type: String, required: [true, 'Phone is required'], trim: true, maxlength: 40 },
